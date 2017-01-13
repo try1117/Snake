@@ -4,8 +4,12 @@
 
 int main()
 {
+	int a = -1 % 10;
+
+
 	Init();
 	Game game(newwin(LINES, COLS, 0, 0));
+	game.Launch();
 	getchar();
 
 	endwin();

@@ -2,6 +2,9 @@
 #include <curses.h>
 #include <string>
 
+#include "Map.h"
+#include "Snake.h"
+
 class Game
 {
 public:
@@ -16,4 +19,6 @@ private:
 	void Refresh();
 
 	WINDOW *window;
+	Map *map;
+	Snake *snake;
 };

@@ -1,11 +1,16 @@
 #include <exception>
 #include <curses.h>
+#include <thread>
+#include <chrono>
+
 #include "Game.h"
 
 Game::Game(WINDOW *_window)
 {
 	window = _window;
-	
+	map = new Map(window);
+	snake = new Snake(map);
+
 	try {
 		LoadSettings();
 	}
@@ -14,8 +19,6 @@ Game::Game(WINDOW *_window)
 		return;
 		// TODO: return back to menu
 	}
-
-	Refresh();
 }
 
 Game::~Game()
@@ -39,12 +42,20 @@ void Game::DisplayMessage(std::string mes)
 void Game::Refresh()
 {
 	box(window, 0, 0);
-	// show player's info at the top
-	// refresh players
+	map->Refresh();
+	snake->Refresh();
 	wrefresh(window);
 }
 
 void Game::Launch()
 {
-
+	for (int i = 1; i < 30; ++i) {
+		Refresh();
+		std::this_thread::sleep_for(std::chrono::milliseconds(400));
+		snake->Move();
+		if (i % 10 == 0)
+			snake->Turn(DIR_UP);
+		if (i % 19 == 0)
+			snake->Turn(DIR_LEFT);
+	}
 }
