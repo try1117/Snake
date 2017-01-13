@@ -5,7 +5,7 @@
 class Game
 {
 public:
-	Game(WINDOW *window);
+	Game(WINDOW *_window);
 	~Game();
 
 	void Launch();
@@ -13,4 +13,7 @@ public:
 private:
 	void LoadSettings();
 	void DisplayMessage(std::string mes);
+	void Refresh();
+
+	WINDOW *window;
 };
