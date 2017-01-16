@@ -2,20 +2,59 @@
 #include <curses.h>
 #include <thread>
 #include <chrono>
+#include <algorithm>
+#include <fstream>
 
 #include "Game.h"
+#include "Utils.h"
+#include "Menu.h"
 
-Game::Game(WINDOW *_window)
+GameParams::GameParams(std::string sp, std::string bp)
+	: speed_param(sp), border_param(bp)
 {
+
+}
+
+Direction Controls::operator[](int key)
+{
+	if (key == up) return DIR_UP;
+	if (key == down) return DIR_DOWN;
+	if (key == left) return DIR_LEFT;
+	if (key == right) return DIR_RIGHT;
+	return DIR_NONE;
+}
+
+Game::Game(WINDOW *_window, GameParams params)
+{
+	game_wind = newwin(rows, cols, 1, 1);
+	box_wind = newwin(rows + 2, cols + 2, 0, 0);
 	window = _window;
-	map = new Map(window);
+
+	wclear(window);
+	wrefresh(window);
+
+	wborder(box_wind, '|', '|', '-', '-', 0, 0, 0, 0);
+	box(box_wind, 0, 0);
+	wrefresh(box_wind);	
+
+	map = new Map(game_wind, rows, cols);
 	snake = new Snake(map);
+
+	period = start_period;
+	if (params.speed_param == "increasing")
+		speed_increase = true;
+	else {
+		speed_increase = false;
+		period -= level_step * std::stoi(params.speed_param);
+	}
+
+	solid_borders = (params.border_param == "on");
 
 	try {
 		LoadSettings();
 	}
 	catch (const std::exception e) {
-		DisplayMessage(e.what());
+		DisplayMessage(window, e.what());
 		return;
 		// TODO: return back to menu
 	}
@@ -23,39 +62,68 @@ Game::Game(WINDOW *_window)
 
 Game::~Game()
 {
-	delwin(window);
+	delwin(game_wind);
+	delwin(box_wind);
 }
 
 void Game::LoadSettings()
 {
-	//throw std::exception("Can't find config file");
-}
+	std::ifstream file("config.txt");
+	if (file.fail()) {
+		throw std::exception("Error while opening file \"config.txt\"");
+		return;
+	}
 
-void Game::DisplayMessage(std::string mes)
-{
-	int center_x = (window->_maxx - mes.length()) / 2;
-	int center_y = window->_maxy / 2;
-	mvwprintw(window, center_y, center_x, mes.c_str());
-	wrefresh(window);
+	while (!file.eof()) {
+		std::string s;
+		std::getline(file, s);
+		std::pair<std::string, std::string> p = ParseJSONString(s);
+		int val = std::stoi(p.second);
+
+		if (p.first == "UP") controls.up = val;
+		if (p.first == "DOWN") controls.down = val;
+		if (p.first == "LEFT") controls.left = val;
+		if (p.first == "RIGHT") controls.right = val;
+	}
 }
 
 void Game::Refresh()
 {
-	box(window, 0, 0);
 	map->Refresh();
 	snake->Refresh();
-	wrefresh(window);
+	wrefresh(game_wind);
 }
 
 void Game::Launch()
 {
-	for (int i = 1; i < 30; ++i) {
+	std::vector<SnakeState> st;
+	int score = 0;
+
+	while (true) {
 		Refresh();
-		std::this_thread::sleep_for(std::chrono::milliseconds(400));
-		snake->Move();
-		if (i % 10 == 0)
-			snake->Turn(DIR_UP);
-		if (i % 19 == 0)
-			snake->Turn(DIR_LEFT);
+		std::this_thread::sleep_for(std::chrono::milliseconds(period));
+		
+		int key = getch();
+		snake->Turn(controls[key]);
+		st = snake->Move();
+
+		for (int i = 0; i < st.size(); ++i) {
+			if (st[i] == ST_FOOD) {
+				period = std::max(min_period, period - speed_increase * food_step);
+				++score;
+			}
+			if (st[i] == ST_INTERSECTION || st[i] == ST_BORDER && solid_borders) {
+				GameOverMenu gom(window, score, [this, score](std::string name) {GameOver(make_pair(name, score)); });
+				gom.Work();
+				return;
+			}
+		}
 	}
+}
+
+void Game::GameOver(Score sc)
+{
+	std::vector<Score> scores = ReadScores();
+	AddScore(scores, sc, 10);
+	SaveScores(scores);
 }

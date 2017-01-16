@@ -1,6 +1,16 @@
 #pragma once
+#include <curses.h>
+#include <string>
 
 void Init();
+void DisplayMessage(WINDOW *window, std::string mes);
+
+typedef std::pair<std::string, int> Score;
+
+std::pair<std::string, std::string> ParseJSONString(std::string s);
+std::vector<Score> ReadScores();
+void AddScore(std::vector<Score> &scores, Score &s, int max_cnt);
+void SaveScores(std::vector<Score> &scores);
 
 struct Cell {
 	int col, row;

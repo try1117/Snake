@@ -12,11 +12,13 @@ Snake::Snake(Map *_map) : map(_map)
 
 Snake::~Snake()
 {
-
+	
 }
 
-SnakeState Snake::Move()
+std::vector<SnakeState> Snake::Move()
 {
+	std::vector<SnakeState> ans;
+
 	if (food.count(body.back())) {
 		food.erase(food.find(body.back()));
 	}
@@ -32,26 +34,27 @@ SnakeState Snake::Move()
 	if (map->CellState(body.front()) == MCS_FOOD) {
 		map->VisitCell(body.front());
 		food.insert(body.front());
+		ans.push_back(ST_FOOD);
 	}
 
 	for (auto it = next(body.begin()); it != body.end(); ++it) {
 		if (*it == body.front())
-			return ST_LOST;
+			ans.push_back(ST_INTERSECTION);
 	}
 
 	if (nrow < map->Rows() || nrow == 2 * map->Rows() ||
 		ncol < map->Cols() || ncol == 2 * map->Cols())
 	{
-		return ST_INTERSECTED;
+		ans.push_back(ST_BORDER);
 	}
 
-	return ST_NORMAL;
+	return ans;
 }
 
 void Snake::Turn(Direction _direction)
 {
 	// we can't turn to the opposite direction
-	if (_direction != (direction + 2) % 4)
+	if (_direction != DIR_NONE && _direction != (direction + 2) % 4)
 		direction = _direction;
 }
 
@@ -59,6 +62,6 @@ void Snake::Turn(Direction _direction)
 void Snake::Refresh()
 {
 	for (auto it = body.begin(); it != body.end(); ++it) {
-		mvwaddch(map->window, 1 + it->row, 1 + it->col, '@');
+		mvwaddch(map->window, it->row, it->col, '@');
 	}
 }

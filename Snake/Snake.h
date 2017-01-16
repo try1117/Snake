@@ -6,11 +6,13 @@
 
 enum SnakeState {
 	ST_NORMAL,
-	ST_INTERSECTED,
-	ST_LOST,
+	ST_BORDER,
+	ST_FOOD,
+	ST_INTERSECTION,
 };
 
 enum Direction {
+	DIR_NONE = -1,
 	DIR_RIGHT = 0,
 	DIR_UP = 1,
 	DIR_LEFT = 2,
@@ -26,7 +28,7 @@ public:
 	Snake(Map *_map);
 	~Snake();
 
-	SnakeState Move();
+	std::vector<SnakeState> Move();
 	void Turn(Direction _direction);
 
 	void Refresh();

@@ -12,7 +12,7 @@ enum MapCellState {
 class Map
 {
 public:
-	Map(WINDOW *_window);
+	Map(WINDOW *_window, int rows, int cols);
 	~Map();
 
 	int Cols();
@@ -20,6 +20,7 @@ public:
 
 	MapCellState CellState(Cell c);
 	void VisitCell(Cell c);
+	void GenerateFood();
 
 	void Refresh();
 

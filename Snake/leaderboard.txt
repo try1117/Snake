@@ -1,0 +1,5 @@
+"nineteen is real"="19"
+"ten"="10"
+"one 111_+111"="1"
+""="0"
+"Very Long String 111"="0"
