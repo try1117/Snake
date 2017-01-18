@@ -7,7 +7,9 @@ void DisplayMessage(WINDOW *window, std::string mes);
 
 typedef std::pair<std::string, int> Score;
 
+std::string MakeJSONString(std::string a, std::string b);
 std::pair<std::string, std::string> ParseJSONString(std::string s);
+
 std::vector<Score> ReadScores();
 void AddScore(std::vector<Score> &scores, Score &s, int max_cnt);
 void SaveScores(std::vector<Score> &scores);

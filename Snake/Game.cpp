@@ -51,7 +51,7 @@ Game::Game(WINDOW *_window, GameParams params)
 	solid_borders = (params.border_param == "on");
 
 	try {
-		LoadSettings();
+		controls = LoadSettings();
 	}
 	catch (const std::exception e) {
 		DisplayMessage(window, e.what());
@@ -66,12 +66,12 @@ Game::~Game()
 	delwin(box_wind);
 }
 
-void Game::LoadSettings()
+Controls Game::LoadSettings()
 {
+	Controls controls;
 	std::ifstream file("config.txt");
 	if (file.fail()) {
 		throw std::exception("Error while opening file \"config.txt\"");
-		return;
 	}
 
 	while (!file.eof()) {
@@ -85,6 +85,21 @@ void Game::LoadSettings()
 		if (p.first == "LEFT") controls.left = val;
 		if (p.first == "RIGHT") controls.right = val;
 	}
+
+	return controls;
+}
+
+void Game::SaveSettings(Controls controls)
+{
+	std::ofstream file("config.txt");
+	if (file.fail()) {
+		throw std::exception("Error while creating file \"config.txt\"");
+	}
+
+	file <<MakeJSONString("UP", std::to_string(controls.up)) << std::endl
+		<< MakeJSONString("DOWN", std::to_string(controls.down)) << std::endl
+		<< MakeJSONString("LEFT", std::to_string(controls.left)) << std::endl
+		<< MakeJSONString("RIGHT", std::to_string(controls.right));
 }
 
 void Game::Refresh()

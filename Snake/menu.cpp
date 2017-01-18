@@ -102,6 +102,36 @@ void Edit::AddSymbol(char c)
 	value += c;
 }
 
+Input::Input(std::string text, int &_key)
+	: Label(text), key(_key)
+{
+	state = IS_NORMAL;
+	selectable = true;
+}
+
+std::string Input::Value()
+{
+	if (state == IS_NORMAL)
+		return keyname(key);
+	return "...";
+}
+
+std::string Input::Text()
+{
+	return Label::Text() + ' ' + Value();
+}
+
+void Input::PassKey(int _key)
+{
+	key = _key;
+	Click();
+}
+
+void Input::Click()
+{
+	state = InputState(!state);
+}
+
 Menu::Menu(WINDOW *_window) : window(_window)
 {
 	focused_item = -1;
@@ -220,11 +250,6 @@ GameMenu::GameMenu(WINDOW *window) : Menu(window)
 	focused_item = SearchSelectable(-1, +1);
 }
 
-Options::Options(WINDOW *window) : Menu(window)
-{
-	AddItem(new Label("Options"));
-}
-
 Leaderboard::Leaderboard(WINDOW *window) : Menu(window)
 {
 	AddItem(new Label("Leaderboard"));
@@ -284,6 +309,62 @@ void GameOverMenu::Work()
 			if (32 <= key && key <= 127)
 				e->AddSymbol(key);
 			break;
+		}
+	}
+}
+
+Options::Options(WINDOW *window) : Menu(window)
+{
+	AddItem(new Label("Movement options"));
+
+	controls = Game::LoadSettings();
+	AddItem(new Input("UP   ", controls.up));
+	AddItem(new Input("DOWN ", controls.down));
+	AddItem(new Input("LEFT ", controls.left));
+	AddItem(new Input("RIGHT", controls.right));
+
+	//AddItem(new Label(""));
+	//AddItem(new Item("save", [controls]() { Game::SaveSettings(controls); }));
+
+	focused_item = SearchSelectable(-1, +1);
+}
+
+void Options::Work()
+{
+	bool toogled = false;
+
+	while (true) {
+		Refresh();
+		int key = getch();
+
+		if (toogled && key == 10) {
+			dynamic_cast<IClickable*>(items[focused_item])->Click();
+			toogled = false;
+			continue;
+		}
+
+		if (toogled && key != -1) {
+			dynamic_cast<Input*>(items[focused_item])->PassKey(key);
+			toogled = false;
+			continue;
+		}
+
+		switch (key) {
+		case KEY_DOWN:
+			focused_item = SearchSelectable(focused_item, +1);
+			break;
+		case KEY_UP:
+			focused_item = SearchSelectable(focused_item, -1);
+			break;
+		case 10:
+			if (focused_item != -1) {
+				dynamic_cast<IClickable*>(items[focused_item])->Click();
+				toogled = !toogled;
+			}
+			break;
+		case 27:
+			Game::SaveSettings(controls);
+			return;
 		}
 	}
 }

@@ -27,7 +27,9 @@ void DisplayMessage(WINDOW *window, std::string mes)
 
 	//wclear(window);
 	wrefresh(meswin);
-	getchar();
+	timeout(10000);
+	getch();
+	timeout(0);
 }
 
 bool ScoreCmp(const Score &a, const Score &b)
@@ -38,6 +40,11 @@ bool ScoreCmp(const Score &a, const Score &b)
 void SortScores(std::vector<Score> &scores)
 {
 	std::sort(scores.begin(), scores.end(), ScoreCmp);
+}
+
+std::string MakeJSONString(std::string a, std::string b)
+{
+	return "\"" + a + "\"=\"" + b + "\"";
 }
 
 std::pair<std::string, std::string> ParseJSONString(std::string s)

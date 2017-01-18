@@ -4,6 +4,8 @@
 #include <functional>
 #include <curses.h>
 
+#include "Game.h"
+
 class Label {
 public:
 	Label(std::string _text);
@@ -60,6 +62,25 @@ private:
 	std::function<void(std::string)> onclick;
 };
 
+class Input : public Label, public IClickable {
+public:
+	Input(std::string text, int &_key);
+
+	std::string Value();
+	std::string Text();
+	void Click();
+	void PassKey(int _key);
+
+	enum InputState {
+		IS_NORMAL = 0,
+		IS_WAITING = 1,
+	};
+
+private:
+	int &key;
+	InputState state;
+};
+
 class Menu {
 public:
 	Menu(WINDOW *_window);
@@ -96,6 +117,9 @@ public:
 class Options : public Menu {
 public:
 	Options(WINDOW *window);
+	void Work();
+private:
+	Controls controls;
 };
 
 class GameOverMenu : public Menu {

@@ -32,9 +32,10 @@ public:
 
 	void Launch();
 	void GameOver(Score sc);
-
+	static Controls LoadSettings();
+	static void SaveSettings(Controls controls);
+	
 private:
-	void LoadSettings();
 	void Refresh();
 
 	WINDOW *window, *game_wind, *box_wind;
